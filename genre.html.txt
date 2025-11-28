@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Genre Page</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  margin: 0;
+  font-family: Inter, sans-serif;
+  background: #0d1117;
+  color: #e6edf3;
+  padding: 20px;
+}
+h1 { margin: 0 0 10px 0; }
+a { color: #58a6ff; text-decoration: none; }
+
+#movieGrid {
+  display: grid;
+  margin-top: 20px;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.movie-card {
+  background: #161b22;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+  transition: .25s;
+}
+.movie-card:hover {
+  transform: translateY(-6px);
+}
+.movie-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+.movie-info { padding: 12px; }
+.movie-title { font-size: 16px; font-weight: 600; }
+.movie-year { color: #8b949e; font-size: 12px; }
+.genre-tags { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+.genre-tag {
+  background: #21262d;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #9b9b9b;
+}
+</style>
+</head>
+<body>
+
+<a href="index.html">← Back to All Movies</a>
+<h1 id="genreTitle"></h1>
+
+<div id="movieGrid"></div>
+
+<script>
+function loadMovies() {
+  return JSON.parse(localStorage.getItem("movies") || "[]");
+}
+
+function getQueryParam(k) {
+  return new URLSearchParams(window.location.search).get(k);
+}
+
+const genre = getQueryParam("g");
+document.getElementById("genreTitle").textContent = genre + " Movies";
+
+const movies = loadMovies();
+const filtered = movies.filter(m => m.genres.includes(genre));
+
+const grid = document.getElementById("movieGrid");
+grid.innerHTML = "";
+
+filtered.forEach(movie => {
+
+  const genresHTML = movie.genres
+    .map(g => `<div class="genre-tag">${g}</div>`)
+    .join("");
+
+  const card = document.createElement("div");
+  card.className = "movie-card";
+
+  card.innerHTML = `
+    <img class="movie-poster" src="${movie.poster}">
+    <div class="movie-info">
+      <div class="movie-title">${movie.title}</div>
+      <div class="movie-year">${movie.year}</div>
+      <div class="genre-tags">${genresHTML}</div>
+    </div>
+  `;
+
+  grid.appendChild(card);
+});
+</script>
+
+</body>
+</html>
