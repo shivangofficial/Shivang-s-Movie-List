@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
+/* ------- GLOBAL STYLES ------- */
 body {
   margin: 0;
   font-family: Inter, sans-serif;
@@ -18,31 +19,35 @@ header {
   justify-content: space-between;
   align-items: center;
 }
-h1 { margin: 0; font-size: 24px; }
+h1 {
+  margin: 0;
+  font-size: 24px;
+}
+button {
+  cursor: pointer;
+}
 
+/* ------- BUTTON STYLES ------- */
 .btn {
   padding: 8px 14px;
   border-radius: 8px;
   border: 1px solid #30363d;
   background: #161b22;
   color: #e6edf3;
-  cursor: pointer;
+  transition: 0.2s;
+}
+.btn:hover {
+  background: #21262d;
 }
 .btn-primary {
   background: #238636;
   border: none;
 }
-.btn-primary:hover { background: #29903a; }
-
-#searchInput {
-  width: 280px;
-  padding: 10px;
-  background: #161b22;
-  border: 1px solid #30363d;
-  border-radius: 8px;
-  color: white;
+.btn-primary:hover {
+  background: #29903a;
 }
 
+/* ------- GRID ------- */
 #movieGrid {
   display: grid;
   margin-top: 20px;
@@ -50,6 +55,7 @@ h1 { margin: 0; font-size: 24px; }
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 }
 
+/* ------- MOVIE CARD ------- */
 .movie-card {
   background: #161b22;
   border-radius: 12px;
@@ -66,30 +72,21 @@ h1 { margin: 0; font-size: 24px; }
   width: 100%;
   aspect-ratio: 2/3;
   object-fit: cover;
+  background: #0d1117;
 }
-
-.movie-info { padding: 12px; }
-.movie-title { font-size: 16px; font-weight: 600; }
-.movie-year { color: #8b949e; font-size: 12px; margin-top: 4px; }
-
-.genre-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
+.movie-info {
+  padding: 12px;
 }
-.genre-tag {
-  background: #21262d;
-  border-radius: 8px;
-  padding: 4px 8px;
+.movie-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+.movie-year {
+  color: #8b949e;
   font-size: 12px;
-  color: #9b9b9b;
-  cursor: pointer;
-  transition: .15s;
 }
-.genre-tag:hover { background: #30363d; }
 
-/* MODAL */
+/* ------- MODAL ------- */
 #modalOverlay {
   position: fixed;
   inset: 0;
@@ -118,10 +115,13 @@ input, textarea {
   border: 1px solid #30363d;
   border-radius: 8px;
   color: white;
+  margin-top: 5px;
 }
-textarea { height: 70px; resize: none; }
-label { margin-top: 10px; display: block; }
-
+textarea {
+  height: 70px;
+  resize: none;
+}
+label { margin-top: 10px; display: block; font-size: 14px; }
 .modal-actions {
   margin-top: 20px;
   display: flex;
@@ -133,20 +133,17 @@ label { margin-top: 10px; display: block; }
 
 <header>
   <h1>Shivang's Movie List</h1>
-  <div>
-    <input id="searchInput" placeholder="Search movies...">
-    <button class="btn-primary" onclick="openAddModal()">+ Add Movie</button>
-  </div>
+  <button class="btn-primary" onclick="openAddModal()">+ Add Movie</button>
 </header>
 
 <div id="movieGrid"></div>
 
-<!-- MODAL -->
+<!-- EDIT / ADD MODAL -->
 <div id="modalOverlay">
   <div id="modal">
     <h2 id="modalTitle">Add Movie</h2>
 
-    <label>Title</label>
+    <label>Movie Title</label>
     <input id="titleInput">
 
     <label>Year</label>
@@ -159,10 +156,7 @@ label { margin-top: 10px; display: block; }
     <input id="writerInput">
 
     <label>Poster URL</label>
-    <input id="posterInput">
-
-    <label>Genres (comma separated)</label>
-    <input id="genresInput">
+    <input id="posterInput" placeholder="https://image.jpg">
 
     <label>Notes</label>
     <textarea id="notesInput"></textarea>
@@ -175,45 +169,32 @@ label { margin-top: 10px; display: block; }
 </div>
 
 <script>
-/********* STORAGE *********/
+/* ------- LOCAL STORAGE HANDLING ------- */
 function loadMovies() {
   return JSON.parse(localStorage.getItem("movies") || "[]");
 }
-function saveMovies(m) {
-  localStorage.setItem("movies", JSON.stringify(m));
+function saveMovies(movies) {
+  localStorage.setItem("movies", JSON.stringify(movies));
 }
 
+/* ------- INITIAL RENDER ------- */
 let movies = loadMovies();
 let editIndex = null;
 
-/********* RENDER *********/
 function renderMovies() {
   const grid = document.getElementById("movieGrid");
-  const q = document.getElementById("searchInput").value.toLowerCase();
   grid.innerHTML = "";
 
-  movies.filter(m =>
-    m.title.toLowerCase().includes(q) ||
-    m.director.toLowerCase().includes(q) ||
-    m.writer.toLowerCase().includes(q) ||
-    m.genres.join(" ").toLowerCase().includes(q)
-  )
-  .forEach((movie, i) => {
-
-    const genresHTML = movie.genres
-      .map(g => `<div class="genre-tag" onclick="event.stopPropagation(); goToGenre('${g}')">${g}</div>`)
-      .join("");
-
+  movies.forEach((movie, i) => {
     const card = document.createElement("div");
     card.className = "movie-card";
     card.onclick = () => openEditModal(i);
 
     card.innerHTML = `
-      <img class="movie-poster" src="${movie.poster}">
+      <img class="movie-poster" src="${movie.poster || ""}">
       <div class="movie-info">
         <div class="movie-title">${movie.title}</div>
         <div class="movie-year">${movie.year}</div>
-        <div class="genre-tags">${genresHTML}</div>
       </div>
     `;
 
@@ -222,56 +203,49 @@ function renderMovies() {
 }
 renderMovies();
 
-/********* NAVIGATE TO GENRE PAGE *********/
-function goToGenre(g) {
-  window.location.href = `genre.html?g=${encodeURIComponent(g)}`;
-}
-
-/********* MODAL LOGIC *********/
+/* ------- MODAL LOGIC ------- */
 function openAddModal() {
   editIndex = null;
+
   document.getElementById("modalTitle").innerText = "Add Movie";
+  document.getElementById("titleInput").value = "";
+  document.getElementById("yearInput").value = "";
+  document.getElementById("directorInput").value = "";
+  document.getElementById("writerInput").value = "";
+  document.getElementById("posterInput").value = "";
+  document.getElementById("notesInput").value = "";
 
-  titleInput.value = "";
-  yearInput.value = "";
-  directorInput.value = "";
-  writerInput.value = "";
-  posterInput.value = "";
-  genresInput.value = "";
-  notesInput.value = "";
-
-  modalOverlay.style.display = "flex";
+  document.getElementById("modalOverlay").style.display = "flex";
 }
+
 function openEditModal(i) {
   editIndex = i;
+
+  document.getElementById("modalTitle").innerText = "Edit Movie";
+
   let m = movies[i];
+  document.getElementById("titleInput").value = m.title;
+  document.getElementById("yearInput").value = m.year;
+  document.getElementById("directorInput").value = m.director;
+  document.getElementById("writerInput").value = m.writer;
+  document.getElementById("posterInput").value = m.poster;
+  document.getElementById("notesInput").value = m.notes;
 
-  modalTitle.innerText = "Edit Movie";
-
-  titleInput.value = m.title;
-  yearInput.value = m.year;
-  directorInput.value = m.director;
-  writerInput.value = m.writer;
-  posterInput.value = m.poster;
-  genresInput.value = m.genres.join(", ");
-  notesInput.value = m.notes;
-
-  modalOverlay.style.display = "flex";
+  document.getElementById("modalOverlay").style.display = "flex";
 }
+
 function closeModal() {
-  modalOverlay.style.display = "none";
+  document.getElementById("modalOverlay").style.display = "none";
 }
 
-/********* SAVE MOVIE *********/
 function saveMovie() {
   const movie = {
-    title: titleInput.value,
-    year: yearInput.value,
-    director: directorInput.value,
-    writer: writerInput.value,
-    poster: posterInput.value,
-    genres: genresInput.value.split(",").map(g => g.trim()).filter(g => g),
-    notes: notesInput.value
+    title: document.getElementById("titleInput").value,
+    year: document.getElementById("yearInput").value,
+    director: document.getElementById("directorInput").value,
+    writer: document.getElementById("writerInput").value,
+    poster: document.getElementById("posterInput").value,
+    notes: document.getElementById("notesInput").value
   };
 
   if (editIndex !== null) movies[editIndex] = movie;
@@ -281,10 +255,12 @@ function saveMovie() {
   renderMovies();
   closeModal();
 }
-
-searchInput.addEventListener("input", renderMovies);
 </script>
 
 </body>
 </html>
+
+</body>
+</html>
+
 
